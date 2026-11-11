@@ -65,13 +65,13 @@ public class HUD : MonoBehaviour
         Font f = Resources.Load<Font>("Fonts/Vazirmatn-Bold");
         if (f != null)
         {
-            _fontAsset = TMP_FontAsset.CreateFontAsset(f, 90, 9, GlyphRenderMode.SMOOTH, 2048, 2048, DynamicAtlasGenerationMode.Dynamic, true);
-            if (TMP_Settings.instance != null && TMP_Settings.instance.defaultFontAsset != null)
-                _fontAsset.fallbackFontAssetTable = new List<TMP_FontAsset> { TMP_Settings.instance.defaultFontAsset };
+            _fontAsset = TMP_FontAsset.CreateFontAsset(f, 90, 9, TMPro.GlyphRenderMode.SMOOTH, 2048, 2048, TMPro.DynamicAtlasGenerationMode.Dynamic, true);
+            if (TMP_Settings.defaultFontAsset != null)
+                _fontAsset.fallbackFontAssetTable = new List<TMP_FontAsset> { TMP_Settings.defaultFontAsset };
         }
-        else if (TMP_Settings.instance != null)
+        else
         {
-            _fontAsset = TMP_Settings.instance.defaultFontAsset;
+            _fontAsset = TMP_Settings.defaultFontAsset;
         }
     }
 
@@ -225,7 +225,7 @@ public class HUD : MonoBehaviour
 
         _scoreText = MakeText(_hudPanel, "ScoreText", "0", 34, TextAlignmentOptions.Center, Color.white, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -45f), new Vector2(500f, 50f));
         _aliveText = MakeText(_hudPanel, "AliveText", "Alive: 10", 30, TextAlignmentOptions.Center, Color.white, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -95f), new Vector2(500f, 45f));
-        _killfeedText = MakeText(_hudPanel, "Killfeed", "", 24, TextAlignmentOptions.UpperRight, new Color(1f, 0.9f, 0.6f), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-260f, -70f), new Vector2(500f, 140f));
+        _killfeedText = MakeText(_hudPanel, "Killfeed", "", 24, TextAlignmentOptions.TopRight, new Color(1f, 0.9f, 0.6f), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-260f, -70f), new Vector2(500f, 140f));
 
         MakeText(_hudPanel, "Crosshair", "+", 42, TextAlignmentOptions.Center, new Color(1f, 1f, 1f, 0.9f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(60f, 60f));
         _hitmarker = MakeText(_hudPanel, "Hitmarker", "✕", 54, TextAlignmentOptions.Center, new Color(1f, 0.25f, 0.2f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(90f, 90f));
@@ -515,8 +515,8 @@ public class Joystick : MonoBehaviour, IDragHandler, IPointerDownHandler, IPoint
     private void HandleDrag(PointerEventData eventData)
     {
         RectTransform rt = GetComponent<RectTransform>();
-        Vector2 local;
-        if (!RectTransformUtility.ScreenPointToLocalPointInWorld(rt, eventData.position, null, out local)) return;
+        Vector3 world = new Vector3(eventData.position.x, eventData.position.y, 0f);
+        Vector2 local = rt.InverseTransformPoint(world);
         if (local.magnitude > _radius) local = local.normalized * _radius;
         if (HandleRect != null) HandleRect.anchoredPosition = local;
         _value = local / Mathf.Max(1f, _radius);

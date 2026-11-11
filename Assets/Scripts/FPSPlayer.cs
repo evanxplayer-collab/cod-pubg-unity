@@ -161,7 +161,6 @@ public class FPSPlayer : MonoBehaviour
         Armor = 0f;
         _healing = false;
         transform.position = _spawnPos + new Vector3(Random.Range(-3f, 3f), 0f, Random.Range(-3f, 3f));
-        transform.position.y = 0f;
         _yaw = 0f;
         _pitch = 0f;
         _verticalVelocity = 0f;

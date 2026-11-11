@@ -33,7 +33,7 @@ public class MapBuilder : MonoBehaviour
         sun.intensity = 1.25f;
         sun.color = new Color(1f, 0.96f, 0.88f);
         sun.shadows = LightShadows.Soft;
-        sun.shadowResolution = 2048;
+        sun.shadowCustomResolution = 2048;
         RenderSettings.ambientLight = new Color(0.58f, 0.64f, 0.74f);
         RenderSettings.fog = true;
         RenderSettings.fogColor = new Color(0.72f, 0.78f, 0.86f);

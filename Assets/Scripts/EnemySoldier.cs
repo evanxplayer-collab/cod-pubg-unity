@@ -104,7 +104,9 @@ public class EnemySoldier : MonoBehaviour
         if (dist > AttackRange * 0.75f)
         {
             transform.position += dir * MoveSpeed * Time.deltaTime;
-            transform.position.y = 0f;
+            Vector3 p = transform.position;
+            p.y = 0f;
+            transform.position = p;
             AnimateRun(1f);
         }
         else
@@ -139,7 +141,6 @@ public class EnemySoldier : MonoBehaviour
         IsDead = false;
         Health = MaxHealth;
         transform.position = _spawnPos + new Vector3(Random.Range(-4f, 4f), 0f, Random.Range(-4f, 4f));
-        transform.position.y = 0f;
         if (_renderer != null) _renderer.material.color = _baseColor;
         if (_meshFilter != null && MeshBundleLoader.SoldierAnims != null && MeshBundleLoader.SoldierAnims.shootFrames.Length > 0)
         {
