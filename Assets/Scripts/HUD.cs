@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -8,7 +7,7 @@ public class HUD : MonoBehaviour
 {
     public Vector2 JoystickVector;
     private GameManager _gm;
-    private TMP_FontAsset _fontAsset;
+    private Font _font;
     private Canvas _canvas;
     private GameObject _menuPanel;
     private GameObject _settingsPanel;
@@ -16,23 +15,23 @@ public class HUD : MonoBehaviour
     private GameObject _hudPanel;
     private GameObject _pausePanel;
     private GameObject _endPanel;
-    private TextMeshProUGUI _healthText;
+    private Text _healthText;
     private Image _healthFill;
     private Image _armorFill;
-    private TextMeshProUGUI _ammoText;
-    private TextMeshProUGUI _scoreText;
-    private TextMeshProUGUI _aliveText;
-    private TextMeshProUGUI _killfeedText;
-    private TextMeshProUGUI _hitmarker;
-    private TextMeshProUGUI _centerMessage;
+    private Text _ammoText;
+    private Text _scoreText;
+    private Text _aliveText;
+    private Text _killfeedText;
+    private Text _hitmarker;
+    private Text _centerMessage;
     private Image _damageFlash;
-    private TextMeshProUGUI _inventoryText;
-    private TextMeshProUGUI _languageButtonText;
-    private TextMeshProUGUI _sensitivityText;
-    private TextMeshProUGUI _endTitle;
-    private TextMeshProUGUI _endStats;
+    private Text _inventoryText;
+    private Text _languageButtonText;
+    private Text _sensitivityText;
+    private Text _endTitle;
+    private Text _endStats;
     private Button[] _weaponButtons = new Button[5];
-    private readonly List<(TextMeshProUGUI tmp, string key)> _localized = new List<(TextMeshProUGUI, string)>();
+    private readonly List<(Text tmp, string key)> _localized = new List<(Text, string)>();
     private float _hitmarkerUntil;
     private float _damageFlashUntil;
     private float _centerMsgUntil;
@@ -62,17 +61,7 @@ public class HUD : MonoBehaviour
 
     private void SetupFont()
     {
-        Font f = Resources.Load<Font>("Fonts/Vazirmatn-Bold");
-        if (f != null)
-        {
-            _fontAsset = TMP_FontAsset.CreateFontAsset(f, 90, 9, TMPro.GlyphRenderMode.SMOOTH, 2048, 2048, TMPro.DynamicAtlasGenerationMode.Dynamic, true);
-            if (TMP_Settings.defaultFontAsset != null)
-                _fontAsset.fallbackFontAssetTable = new List<TMP_FontAsset> { TMP_Settings.defaultFontAsset };
-        }
-        else
-        {
-            _fontAsset = TMP_Settings.defaultFontAsset;
-        }
+        _font = Resources.Load<Font>("Fonts/Vazirmatn-Bold");
     }
 
     private RectTransform MakeRect(GameObject parent, string name, Vector2 anchorMin, Vector2 anchorMax, Vector2 pos, Vector2 size)
@@ -95,24 +84,24 @@ public class HUD : MonoBehaviour
         return img;
     }
 
-    private TextMeshProUGUI MakeText(GameObject parent, string name, string text, int fontSize, TextAlignmentOptions alignment, Color color, Vector2 anchorMin, Vector2 anchorMax, Vector2 pos, Vector2 size)
+    private Text MakeText(GameObject parent, string name, string text, int fontSize, TextAnchor alignment, Color color, Vector2 anchorMin, Vector2 anchorMax, Vector2 pos, Vector2 size)
     {
         RectTransform rt = MakeRect(parent, name, anchorMin, anchorMax, pos, size);
-        TextMeshProUGUI tmp = rt.gameObject.AddComponent<TextMeshProUGUI>();
-        tmp.font = _fontAsset;
+        Text tmp = rt.gameObject.AddComponent<Text>();
+        tmp.font = _font;
         tmp.fontSize = fontSize;
         tmp.alignment = alignment;
         tmp.color = color;
         tmp.text = text;
-        tmp.enableWordWrapping = true;
-        tmp.overflowMode = TextOverflowModes.Overflow;
+        tmp.horizontalOverflow = HorizontalWrapMode.Overflow;
+        tmp.verticalOverflow = VerticalWrapMode.Overflow;
         tmp.raycastTarget = false;
         return tmp;
     }
 
-    private TextMeshProUGUI MakeLocalizedText(GameObject parent, string name, string key, int fontSize, TextAlignmentOptions alignment, Color color, Vector2 anchorMin, Vector2 anchorMax, Vector2 pos, Vector2 size)
+    private Text MakeLocalizedText(GameObject parent, string name, string key, int fontSize, TextAnchor alignment, Color color, Vector2 anchorMin, Vector2 anchorMax, Vector2 pos, Vector2 size)
     {
-        TextMeshProUGUI tmp = MakeText(parent, name, Localization50.Get(_gm.LanguageCode, key), fontSize, alignment, color, anchorMin, anchorMax, pos, size);
+        Text tmp = MakeText(parent, name, Localization50.Get(_gm.LanguageCode, key), fontSize, alignment, color, anchorMin, anchorMax, pos, size);
         _localized.Add((tmp, key));
         return tmp;
     }
@@ -127,7 +116,7 @@ public class HUD : MonoBehaviour
         colors.highlightedColor = new Color(0.85f, 0.9f, 1f);
         colors.pressedColor = new Color(0.6f, 0.75f, 1f);
         btn.colors = colors;
-        TextMeshProUGUI label = MakeLocalizedText(img.gameObject, "Label", key, 30, TextAlignmentOptions.Center, Color.white, new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
+        Text label = MakeLocalizedText(img.gameObject, "Label", key, 30, TextAnchor.MiddleCenter, Color.white, new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
         label.rectTransform.anchorMin = new Vector2(0f, 0f);
         label.rectTransform.anchorMax = new Vector2(1f, 1f);
         label.rectTransform.anchoredPosition = Vector2.zero;
@@ -155,13 +144,13 @@ public class HUD : MonoBehaviour
         _menuPanel = new GameObject("MenuPanel");
         _menuPanel.transform.SetParent(_canvas.transform, false);
         MakeImage(_menuPanel, "Bg", new Color(0.05f, 0.07f, 0.1f, 1f), new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
-        MakeText(_menuPanel, "Title", "COD & PUBG Battlegrounds", 64, TextAlignmentOptions.Center, new Color(1f, 0.85f, 0.3f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -120f), new Vector2(1200f, 110f));
-        MakeLocalizedText(_menuPanel, "Subtitle", "Play", 34, TextAlignmentOptions.Center, Color.white, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -185f), new Vector2(800f, 60f));
+        MakeText(_menuPanel, "Title", "COD & PUBG Battlegrounds", 64, TextAnchor.MiddleCenter, new Color(1f, 0.85f, 0.3f), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -120f), new Vector2(1200f, 110f));
+        MakeLocalizedText(_menuPanel, "Subtitle", "Play", 34, TextAnchor.MiddleCenter, Color.white, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -185f), new Vector2(800f, 60f));
         MakeButton(_menuPanel, "BtnBR", "BattleRoyale", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 170f), new Vector2(520f, 90f), () => _gm.StartGame(GameMode.BattleRoyale));
         MakeButton(_menuPanel, "BtnTDM", "Multiplayer", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 60f), new Vector2(520f, 90f), () => _gm.StartGame(GameMode.Multiplayer));
         MakeButton(_menuPanel, "BtnSettings", "Settings", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -50f), new Vector2(520f, 90f), () => ShowSettings());
         MakeButton(_menuPanel, "BtnCredits", "Credits", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -160f), new Vector2(520f, 90f), () => ShowCredits());
-        MakeText(_menuPanel, "Creator", "پرهام اذانگو | Parham Azangoo", 28, TextAlignmentOptions.Center, new Color(0.8f, 0.85f, 0.95f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 60f), new Vector2(900f, 50f));
+        MakeText(_menuPanel, "Creator", "پرهام اذانگو | Parham Azangoo", 28, TextAnchor.MiddleCenter, new Color(0.8f, 0.85f, 0.95f), new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 60f), new Vector2(900f, 50f));
     }
 
     private void BuildSettings()
@@ -169,27 +158,27 @@ public class HUD : MonoBehaviour
         _settingsPanel = new GameObject("SettingsPanel");
         _settingsPanel.transform.SetParent(_canvas.transform, false);
         MakeImage(_settingsPanel, "Bg", new Color(0.06f, 0.08f, 0.11f, 0.97f), new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
-        MakeLocalizedText(_settingsPanel, "Title", "Settings", 54, TextAlignmentOptions.Center, Color.white, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -90f), new Vector2(700f, 80f));
-        MakeLocalizedText(_settingsPanel, "LangLabel", "Language", 32, TextAlignmentOptions.Center, Color.white, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-260f, 150f), new Vector2(300f, 60f));
+        MakeLocalizedText(_settingsPanel, "Title", "Settings", 54, TextAnchor.MiddleCenter, Color.white, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -90f), new Vector2(700f, 80f));
+        MakeLocalizedText(_settingsPanel, "LangLabel", "Language", 32, TextAnchor.MiddleCenter, Color.white, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-260f, 150f), new Vector2(300f, 60f));
         Button langBtn = MakeButton(_settingsPanel, "LangBtn", "Language", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(180f, 150f), new Vector2(420f, 80f), CycleLanguage);
-        _languageButtonText = langBtn.GetComponentInChildren<TextMeshProUGUI>();
-        MakeLocalizedText(_settingsPanel, "SensLabel", "Sensitivity", 32, TextAlignmentOptions.Center, Color.white, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-260f, 40f), new Vector2(300f, 60f));
+        _languageButtonText = langBtn.GetComponentInChildren<Text>();
+        MakeLocalizedText(_settingsPanel, "SensLabel", "Sensitivity", 32, TextAnchor.MiddleCenter, Color.white, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-260f, 40f), new Vector2(300f, 60f));
         Button sensMinus = MakeButton(_settingsPanel, "SensMinus", "Back", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(40f, 40f), new Vector2(110f, 80f), () => ChangeSensitivity(-0.2f));
-        sensMinus.GetComponentInChildren<TextMeshProUGUI>().text = "-";
+        sensMinus.GetComponentInChildren<Text>().text = "-";
         _localized.RemoveAt(_localized.Count - 1);
-        _sensitivityText = MakeText(_settingsPanel, "SensValue", "2.2", 32, TextAlignmentOptions.Center, Color.white, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(180f, 40f), new Vector2(140f, 80f));
+        _sensitivityText = MakeText(_settingsPanel, "SensValue", "2.2", 32, TextAnchor.MiddleCenter, Color.white, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(180f, 40f), new Vector2(140f, 80f));
         Button sensPlus = MakeButton(_settingsPanel, "SensPlus", "Start", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(320f, 40f), new Vector2(110f, 80f), () => ChangeSensitivity(0.2f));
-        sensPlus.GetComponentInChildren<TextMeshProUGUI>().text = "+";
+        sensPlus.GetComponentInChildren<Text>().text = "+";
         _localized.RemoveAt(_localized.Count - 1);
-        MakeLocalizedText(_settingsPanel, "QualLabel", "Quality", 32, TextAlignmentOptions.Center, Color.white, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-260f, -70f), new Vector2(300f, 60f));
+        MakeLocalizedText(_settingsPanel, "QualLabel", "Quality", 32, TextAnchor.MiddleCenter, Color.white, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-260f, -70f), new Vector2(300f, 60f));
         Button qLow = MakeButton(_settingsPanel, "QualLow", "Quality", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(40f, -70f), new Vector2(150f, 80f), () => SetQuality(0));
-        qLow.GetComponentInChildren<TextMeshProUGUI>().text = "Low";
+        qLow.GetComponentInChildren<Text>().text = "Low";
         _localized.RemoveAt(_localized.Count - 1);
         Button qMed = MakeButton(_settingsPanel, "QualMed", "Quality", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(210f, -70f), new Vector2(150f, 80f), () => SetQuality(1));
-        qMed.GetComponentInChildren<TextMeshProUGUI>().text = "Medium";
+        qMed.GetComponentInChildren<Text>().text = "Medium";
         _localized.RemoveAt(_localized.Count - 1);
         Button qHigh = MakeButton(_settingsPanel, "QualHigh", "Quality", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(380f, -70f), new Vector2(150f, 80f), () => SetQuality(2));
-        qHigh.GetComponentInChildren<TextMeshProUGUI>().text = "High";
+        qHigh.GetComponentInChildren<Text>().text = "High";
         _localized.RemoveAt(_localized.Count - 1);
         MakeButton(_settingsPanel, "BackBtn", "Back", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -200f), new Vector2(420f, 90f), () => ShowMenu());
     }
@@ -199,10 +188,10 @@ public class HUD : MonoBehaviour
         _creditsPanel = new GameObject("CreditsPanel");
         _creditsPanel.transform.SetParent(_canvas.transform, false);
         MakeImage(_creditsPanel, "Bg", new Color(0.06f, 0.08f, 0.11f, 0.97f), new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
-        MakeLocalizedText(_creditsPanel, "Title", "Credits", 54, TextAlignmentOptions.Center, Color.white, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -90f), new Vector2(700f, 80f));
-        MakeText(_creditsPanel, "CreatorName", "پرهام اذانگو", 56, TextAlignmentOptions.Center, new Color(1f, 0.85f, 0.3f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 80f), new Vector2(900f, 90f));
-        MakeText(_creditsPanel, "CreatorEn", "Parham Azangoo", 40, TextAlignmentOptions.Center, Color.white, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 10f), new Vector2(900f, 70f));
-        MakeText(_creditsPanel, "Thanks", "COD & PUBG Battlegrounds | Unity", 28, TextAlignmentOptions.Center, new Color(0.8f, 0.85f, 0.95f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -60f), new Vector2(900f, 50f));
+        MakeLocalizedText(_creditsPanel, "Title", "Credits", 54, TextAnchor.MiddleCenter, Color.white, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -90f), new Vector2(700f, 80f));
+        MakeText(_creditsPanel, "CreatorName", "پرهام اذانگو", 56, TextAnchor.MiddleCenter, new Color(1f, 0.85f, 0.3f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 80f), new Vector2(900f, 90f));
+        MakeText(_creditsPanel, "CreatorEn", "Parham Azangoo", 40, TextAnchor.MiddleCenter, Color.white, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 10f), new Vector2(900f, 70f));
+        MakeText(_creditsPanel, "Thanks", "COD & PUBG Battlegrounds | Unity", 28, TextAnchor.MiddleCenter, new Color(0.8f, 0.85f, 0.95f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -60f), new Vector2(900f, 50f));
         MakeButton(_creditsPanel, "BackBtn", "Back", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -180f), new Vector2(420f, 90f), () => ShowMenu());
     }
 
@@ -221,16 +210,16 @@ public class HUD : MonoBehaviour
         MakeImage(_hudPanel, "HealthBg", new Color(0f, 0f, 0f, 0.45f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(230f, -55f), new Vector2(420f, 34f));
         _healthFill = MakeImage(_hudPanel, "HealthFill", new Color(0.25f, 0.9f, 0.35f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(230f, -55f), new Vector2(410f, 24f));
         _armorFill = MakeImage(_hudPanel, "ArmorFill", new Color(0.3f, 0.6f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(230f, -88f), new Vector2(410f, 14f));
-        _healthText = MakeText(_hudPanel, "HealthText", "100", 28, TextAlignmentOptions.Center, Color.white, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(230f, -55f), new Vector2(420f, 40f));
+        _healthText = MakeText(_hudPanel, "HealthText", "100", 28, TextAnchor.MiddleCenter, Color.white, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(230f, -55f), new Vector2(420f, 40f));
 
-        _scoreText = MakeText(_hudPanel, "ScoreText", "0", 34, TextAlignmentOptions.Center, Color.white, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -45f), new Vector2(500f, 50f));
-        _aliveText = MakeText(_hudPanel, "AliveText", "Alive: 10", 30, TextAlignmentOptions.Center, Color.white, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -95f), new Vector2(500f, 45f));
-        _killfeedText = MakeText(_hudPanel, "Killfeed", "", 24, TextAlignmentOptions.TopRight, new Color(1f, 0.9f, 0.6f), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-260f, -70f), new Vector2(500f, 140f));
+        _scoreText = MakeText(_hudPanel, "ScoreText", "0", 34, TextAnchor.MiddleCenter, Color.white, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -45f), new Vector2(500f, 50f));
+        _aliveText = MakeText(_hudPanel, "AliveText", "Alive: 10", 30, TextAnchor.MiddleCenter, Color.white, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -95f), new Vector2(500f, 45f));
+        _killfeedText = MakeText(_hudPanel, "Killfeed", "", 24, TextAnchor.UpperRight, new Color(1f, 0.9f, 0.6f), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-260f, -70f), new Vector2(500f, 140f));
 
-        MakeText(_hudPanel, "Crosshair", "+", 42, TextAlignmentOptions.Center, new Color(1f, 1f, 1f, 0.9f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(60f, 60f));
-        _hitmarker = MakeText(_hudPanel, "Hitmarker", "✕", 54, TextAlignmentOptions.Center, new Color(1f, 0.25f, 0.2f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(90f, 90f));
+        MakeText(_hudPanel, "Crosshair", "+", 42, TextAnchor.MiddleCenter, new Color(1f, 1f, 1f, 0.9f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(60f, 60f));
+        _hitmarker = MakeText(_hudPanel, "Hitmarker", "✕", 54, TextAnchor.MiddleCenter, new Color(1f, 0.25f, 0.2f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(90f, 90f));
         _hitmarker.gameObject.SetActive(false);
-        _centerMessage = MakeText(_hudPanel, "CenterMessage", "", 36, TextAlignmentOptions.Center, new Color(1f, 0.9f, 0.4f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 150f), new Vector2(1000f, 60f));
+        _centerMessage = MakeText(_hudPanel, "CenterMessage", "", 36, TextAnchor.MiddleCenter, new Color(1f, 0.9f, 0.4f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 150f), new Vector2(1000f, 60f));
         _centerMessage.gameObject.SetActive(false);
 
         GameObject joyBase = new GameObject("JoystickBase");
@@ -264,15 +253,15 @@ public class HUD : MonoBehaviour
         MakeButton(_hudPanel, "BtnWeapon", "Weapon", new Vector2(1f, 0f), new Vector2(1f, 0f), new Vector2(-150f, 460f), new Vector2(150f, 90f), () => _gm.Player.PressWeaponNext());
         MakeButton(_hudPanel, "BtnPause", "Pause", new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-90f, -50f), new Vector2(140f, 80f), () => _gm.PauseGame(true));
 
-        _ammoText = MakeText(_hudPanel, "AmmoText", "30 / 120", 40, TextAlignmentOptions.Center, Color.white, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 70f), new Vector2(420f, 60f));
-        _inventoryText = MakeText(_hudPanel, "InventoryText", "", 24, TextAlignmentOptions.Center, Color.white, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 120f), new Vector2(600f, 40f));
+        _ammoText = MakeText(_hudPanel, "AmmoText", "30 / 120", 40, TextAnchor.MiddleCenter, Color.white, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 70f), new Vector2(420f, 60f));
+        _inventoryText = MakeText(_hudPanel, "InventoryText", "", 24, TextAnchor.MiddleCenter, Color.white, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0f, 120f), new Vector2(600f, 40f));
         string[] names = new string[] { "M416", "AK-47", "AWM", "870", "Glock" };
         for (int i = 0; i < 5; i++)
         {
             int idx = i;
             Button b = MakeButton(_hudPanel, "WeaponBtn" + i, "Weapon", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(-240f + i * 120f, 170f), new Vector2(110f, 60f), () => _gm.Player.Weapons.SelectWeapon(idx));
             _localized.RemoveAt(_localized.Count - 1);
-            b.GetComponentInChildren<TextMeshProUGUI>().text = names[i];
+            b.GetComponentInChildren<Text>().text = names[i];
             _weaponButtons[i] = b;
         }
     }
@@ -282,7 +271,7 @@ public class HUD : MonoBehaviour
         _pausePanel = new GameObject("PausePanel");
         _pausePanel.transform.SetParent(_canvas.transform, false);
         MakeImage(_pausePanel, "Bg", new Color(0f, 0f, 0f, 0.55f), new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
-        MakeLocalizedText(_pausePanel, "Title", "Pause", 54, TextAlignmentOptions.Center, Color.white, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 220f), new Vector2(600f, 80f));
+        MakeLocalizedText(_pausePanel, "Title", "Pause", 54, TextAnchor.MiddleCenter, Color.white, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 220f), new Vector2(600f, 80f));
         MakeButton(_pausePanel, "BtnResume", "Resume", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 110f), new Vector2(420f, 90f), () => _gm.PauseGame(false));
         MakeButton(_pausePanel, "BtnRestart", "Restart", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 0f), new Vector2(420f, 90f), () => _gm.RestartGame());
         MakeButton(_pausePanel, "BtnMenu", "Back", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -110f), new Vector2(420f, 90f), () => _gm.BackToMenu());
@@ -293,8 +282,8 @@ public class HUD : MonoBehaviour
         _endPanel = new GameObject("EndPanel");
         _endPanel.transform.SetParent(_canvas.transform, false);
         MakeImage(_endPanel, "Bg", new Color(0.04f, 0.05f, 0.08f, 0.92f), new Vector2(0f, 0f), new Vector2(1f, 1f), Vector2.zero, Vector2.zero);
-        _endTitle = MakeLocalizedText(_endPanel, "Title", "Winner", 64, TextAlignmentOptions.Center, new Color(1f, 0.85f, 0.3f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 180f), new Vector2(1000f, 100f));
-        _endStats = MakeText(_endPanel, "Stats", "", 32, TextAlignmentOptions.Center, Color.white, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 60f), new Vector2(900f, 120f));
+        _endTitle = MakeLocalizedText(_endPanel, "Title", "Winner", 64, TextAnchor.MiddleCenter, new Color(1f, 0.85f, 0.3f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 180f), new Vector2(1000f, 100f));
+        _endStats = MakeText(_endPanel, "Stats", "", 32, TextAnchor.MiddleCenter, Color.white, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, 60f), new Vector2(900f, 120f));
         MakeButton(_endPanel, "BtnAgain", "Restart", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -80f), new Vector2(420f, 90f), () => _gm.RestartGame());
         MakeButton(_endPanel, "BtnMenu", "Back", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0f, -190f), new Vector2(420f, 90f), () => _gm.BackToMenu());
     }
