@@ -20,12 +20,29 @@ public static class MeshBundleLoader
 
     public static Material GetBaseMaterial()
     {
-        if (_baseStandardMat == null)
+        if (_baseStandardMat != null) return _baseStandardMat;
+
+        // Preferred: the DefaultMat asset (created by the Editor script) so the
+        // Standard shader is guaranteed to be present in the build.
+        Material fromResources = Resources.Load<Material>("DefaultMat");
+        if (fromResources != null)
         {
-            GameObject temp = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            _baseStandardMat = new Material(temp.GetComponent<MeshRenderer>().sharedMaterial);
-            UnityEngine.Object.Destroy(temp);
+            _baseStandardMat = new Material(fromResources);
+            return _baseStandardMat;
         }
+
+        // Fallback: build a Standard material directly.
+        Shader standard = Shader.Find("Standard");
+        if (standard != null)
+        {
+            _baseStandardMat = new Material(standard);
+            return _baseStandardMat;
+        }
+
+        // Last resort: clone a primitive's default material.
+        GameObject temp = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        _baseStandardMat = new Material(temp.GetComponent<MeshRenderer>().sharedMaterial);
+        UnityEngine.Object.Destroy(temp);
         return _baseStandardMat;
     }
 
@@ -119,10 +136,20 @@ public static class MeshBundleLoader
                 if (texLen > 0)
                 {
                     byte[] texBytes = br.ReadBytes(texLen);
-                    tex = new Texture2D(2, 2, TextureFormat.RGBA32, true);
-                    ImageConversion.LoadImage(tex, texBytes);
-                    tex.wrapMode = TextureWrapMode.Repeat;
-                    tex.filterMode = FilterMode.Bilinear;
+                    Texture2D candidate = new Texture2D(2, 2, TextureFormat.RGBA32, true);
+                    // Only use the texture if it decoded successfully; otherwise
+                    // fall back to the plain material color (avoids broken/pink look).
+                    if (ImageConversion.LoadImage(candidate, texBytes))
+                    {
+                        candidate.wrapMode = TextureWrapMode.Repeat;
+                        candidate.filterMode = FilterMode.Bilinear;
+                        tex = candidate;
+                    }
+                    else
+                    {
+                        UnityEngine.Object.Destroy(candidate);
+                        tex = null;
+                    }
                 }
 
                 int vcnt = br.ReadInt32();
