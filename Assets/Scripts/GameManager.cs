@@ -18,6 +18,7 @@ public class GameManager : MonoBehaviour
     public HUD HUD;
     public MapBuilder Map;
     public BlueZone Zone;
+    public Camera MenuCamera;
 
     private readonly List<EnemySoldier> _enemies = new List<EnemySoldier>();
     private int _score;
@@ -32,23 +33,68 @@ public class GameManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
         LanguageCode = PlayerPrefs.GetString("Language", "fa");
-        GameObject audioGo = new GameObject("AudioManager");
-        audioGo.AddComponent<AudioManager>();
-        GameObject mapGo = new GameObject("MapBuilder");
-        Map = mapGo.AddComponent<MapBuilder>();
-        Map.Build();
-        GameObject zoneGo = new GameObject("BlueZone");
-        Zone = zoneGo.AddComponent<BlueZone>();
-        Zone.Initialize();
-        GameObject hudGo = new GameObject("HUD");
-        HUD = hudGo.AddComponent<HUD>();
-        GameObject playerGo = new GameObject("Player");
-        Player = playerGo.AddComponent<FPSPlayer>();
-        Player.Initialize(Map.PlayerSpawn);
-        playerGo.SetActive(false);
-        HUD.Initialize(this);
-        SpawnInitialLoot();
-        HUD.ShowMenu();
+
+        // World first (map, zone). Each step is guarded so a single failure
+        // can never prevent the menu from appearing.
+        try
+        {
+            GameObject audioGo = new GameObject("AudioManager");
+            audioGo.AddComponent<AudioManager>();
+        }
+        catch (System.Exception e) { Debug.LogError("[GM] AudioManager: " + e.Message); }
+
+        try
+        {
+            GameObject mapGo = new GameObject("MapBuilder");
+            Map = mapGo.AddComponent<MapBuilder>();
+            Map.Build();
+        }
+        catch (System.Exception e) { Debug.LogError("[GM] MapBuilder: " + e.Message); }
+
+        try
+        {
+            GameObject zoneGo = new GameObject("BlueZone");
+            Zone = zoneGo.AddComponent<BlueZone>();
+            Zone.Initialize();
+        }
+        catch (System.Exception e) { Debug.LogError("[GM] BlueZone: " + e.Message); }
+
+        // Menu camera: renders the battlefield behind the menu so the player
+        // always sees the world (and the menu has a live background).
+        try
+        {
+            GameObject camGo = new GameObject("MenuCamera");
+            camGo.transform.position = new Vector3(0f, 9f, 34f);
+            camGo.transform.rotation = Quaternion.Euler(18f, 180f, 0f);
+            MenuCamera = camGo.AddComponent<Camera>();
+            MenuCamera.fieldOfView = 60f;
+            MenuCamera.clearFlags = CameraClearFlags.Skybox;
+            MenuCamera.depth = -10f;
+        }
+        catch (System.Exception e) { Debug.LogError("[GM] MenuCamera: " + e.Message); }
+
+        // Player (created but hidden until a game starts).
+        try
+        {
+            GameObject playerGo = new GameObject("Player");
+            Player = playerGo.AddComponent<FPSPlayer>();
+            Player.Initialize(Map != null ? Map.PlayerSpawn : new Vector3(0f, 0f, 28f));
+            playerGo.SetActive(false);
+        }
+        catch (System.Exception e) { Debug.LogError("[GM] Player: " + e.Message); }
+
+        // HUD / menu last and guaranteed.
+        try
+        {
+            GameObject hudGo = new GameObject("HUD");
+            HUD = hudGo.AddComponent<HUD>();
+            HUD.Initialize(this);
+        }
+        catch (System.Exception e) { Debug.LogError("[GM] HUD: " + e.Message); }
+
+        try { SpawnInitialLoot(); } catch (System.Exception e) { Debug.LogError("[GM] Loot: " + e.Message); }
+
+        if (HUD != null) HUD.ShowMenu();
         IsPlaying = false;
     }
 
@@ -78,6 +124,7 @@ public class GameManager : MonoBehaviour
             if (_airdropRoutine != null) StopCoroutine(_airdropRoutine);
             _airdropRoutine = StartCoroutine(AirdropRoutine());
         }
+        if (MenuCamera != null) MenuCamera.enabled = false;
         Player.gameObject.SetActive(true);
         Player.Respawn();
         HUD.ShowHud();
@@ -109,6 +156,7 @@ public class GameManager : MonoBehaviour
         ClearEnemies();
         if (Player != null) Player.gameObject.SetActive(false);
         if (Zone != null) { Zone.Enabled = false; Zone.gameObject.SetActive(false); }
+        if (MenuCamera != null) MenuCamera.enabled = true;
         HUD.ShowMenu();
     }
 

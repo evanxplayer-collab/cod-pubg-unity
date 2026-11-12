@@ -49,6 +49,13 @@ public class HUD : MonoBehaviour
         scaler.referenceResolution = new Vector2(1920f, 1080f);
         scaler.matchWidthOrHeight = 0.5f;
         _canvas.gameObject.AddComponent<GraphicRaycaster>();
+        // EventSystem is required for buttons to receive clicks/touches.
+        if (FindObjectOfType<EventSystem>() == null)
+        {
+            GameObject es = new GameObject("EventSystem");
+            es.AddComponent<EventSystem>();
+            es.AddComponent<StandaloneInputModule>();
+        }
         BuildMenu();
         BuildSettings();
         BuildCredits();
@@ -62,6 +69,16 @@ public class HUD : MonoBehaviour
     private void SetupFont()
     {
         _font = Resources.Load<Font>("Fonts/Vazirmatn-Bold");
+        if (_font == null)
+        {
+            // Fallback so the menu text always renders even if the custom
+            // font failed to import/load.
+            _font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+        }
+        if (_font == null)
+        {
+            Debug.LogError("[HUD] No font available - text will not render.");
+        }
     }
 
     private RectTransform MakeRect(GameObject parent, string name, Vector2 anchorMin, Vector2 anchorMax, Vector2 pos, Vector2 size)
