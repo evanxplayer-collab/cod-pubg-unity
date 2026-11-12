@@ -30,16 +30,38 @@ public static class ConfigureAndroidBuild
     {
         try
         {
+            // Standard material (forces the Standard shader into the build).
             string matPath = "Assets/Resources/DefaultMat.mat";
-            if (System.IO.File.Exists(matPath)) return;
-            Shader standard = Shader.Find("Standard");
-            if (standard == null) return;
-            Material mat = new Material(standard);
-            mat.name = "DefaultMat";
-            mat.color = Color.white;
-            AssetDatabase.CreateAsset(mat, matPath);
+            if (!System.IO.File.Exists(matPath))
+            {
+                Shader standard = Shader.Find("Standard");
+                if (standard != null)
+                {
+                    Material mat = new Material(standard);
+                    mat.name = "DefaultMat";
+                    mat.color = Color.white;
+                    AssetDatabase.CreateAsset(mat, matPath);
+                }
+            }
+
+            // Skybox material (forces the Procedural skybox shader into the build).
+            string skyPath = "Assets/Resources/SkyboxMat.mat";
+            if (!System.IO.File.Exists(skyPath))
+            {
+                Shader procedural = Shader.Find("Procedural");
+                if (procedural != null)
+                {
+                    Material sky = new Material(procedural);
+                    sky.name = "SkyboxMat";
+                    sky.SetFloat("_Exposure", 1.1f);
+                    sky.SetColor("_SkyTint", new Color(0.45f, 0.62f, 0.9f));
+                    sky.SetColor("_GroundColor", new Color(0.35f, 0.3f, 0.22f));
+                    AssetDatabase.CreateAsset(sky, skyPath);
+                }
+            }
+
             AssetDatabase.Refresh();
-            Debug.Log("[ConfigureAndroidBuild] Created DefaultMat.mat so the Standard shader is included in builds.");
+            Debug.Log("[ConfigureAndroidBuild] Ensured Standard + Procedural skybox shaders are included in builds.");
         }
         catch (System.Exception e)
         {

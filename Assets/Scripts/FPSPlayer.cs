@@ -52,6 +52,17 @@ public class FPSPlayer : MonoBehaviour
         PlayerCamera.clearFlags = CameraClearFlags.Skybox;
         PlayerCamera.backgroundColor = new Color(0.55f, 0.68f, 0.85f);
 
+        // Soft light so the weapon viewmodel is nicely lit in shadowed areas.
+        GameObject lightGo = new GameObject("WeaponLight");
+        lightGo.transform.SetParent(PlayerCamera.transform, false);
+        lightGo.transform.localPosition = new Vector3(0.15f, 0.1f, -0.2f);
+        Light weaponLight = lightGo.AddComponent<Light>();
+        weaponLight.type = LightType.Point;
+        weaponLight.color = new Color(1f, 0.96f, 0.88f);
+        weaponLight.intensity = 0.55f;
+        weaponLight.range = 3.5f;
+        weaponLight.shadows = LightShadows.None;
+
         GameObject mountGo = new GameObject("WeaponMount");
         mountGo.transform.SetParent(PlayerCamera.transform, false);
         mountGo.transform.localPosition = Vector3.zero;
